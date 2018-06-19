@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 
 class Card extends Component {
@@ -30,7 +29,7 @@ class Card extends Component {
             }}><hr /><h1>{this.props.back}</h1></div>
 
             <div style={{
-                height: '2em',
+                height: '1.7em',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'flex-end'
@@ -68,28 +67,97 @@ class Option extends Component {
     }
 }
 
+class MakeNew extends Component {
+    constructor(props) {
+        super(props);
+        this.frontInput = React.createRef();
+        this.backInput = React.createRef();
+    }
+    handleClick() {
+        const front = this.frontInput.current.value;
+        const back = this.backInput.current.value;
+        if (front.length === 0 || back.length === 0) {
+            console.error('empty');
+        }
+        this.props.onSubmit({ front, back });
+    }
+    render() {
+        return <div style={{
+            border: '1px solid black',
+            padding: '20px',
+            margin: '20px',
+            width: '500px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start'
+        }}>
+            Front
+            <input ref={this.frontInput}  style={{
+                width: '100%',
+                height: '10em'
+            }} />
+            <div style={{ height: '1em' }} />
+            Back
+            <input ref={this.backInput} style={{
+                width: '100%',
+                height: '10em'
+            }} />
+            <div style={{ height: '1em' }} />
+            <button onClick={this.handleClick.bind(this)}>submit</button>
+        </div>
+    }
+}
+
+class SubmitManager extends Component {
+    handleSubmit(s) {
+        console.log(s);
+    }
+    render() {
+        return <MakeNew onSubmit={this.handleSubmit.bind(this)} />
+    }
+}
+
+class ReviewManager extends Component {
+    render() {
+        return <Card front="f" back="b">
+            <Option front="Again" top="soon"/>
+            <Option front="Hard" top="1 hour"/>
+            <Option front="Good" top="1 day"/>
+            <Option front="Easy" top="1 year"/>
+        </Card>
+    }
+}
+
 class App extends Component {
-  handleChooseOption(x) {
-      console.log(x);
+  constructor(props) {
+      super(props);
+      this.state = {
+          reviewing: true,
+      };
+  }
+  handleToggleMode() {
+      this.setState({
+          reviewing: !this.state.reviewing,
+      });
   }
   render() {
     return (
-      <div className="App">
+      <div className="App" style={{
+          height: '100vh',
+      }}>
         <header className="App-header">
           <h1 className="App-title">LSTM</h1>
         </header>
+        <button onClick={this.handleToggleMode.bind(this)}>flip</button>
         <div style={{
             display: 'flex',
             width: '100%',
+            height: '60%',
             alignItems: 'center',
+            justifyContent: 'center',
             flexDirection: 'column',
         }}>
-            <Card front="f" back="b">
-                <Option front="Again" top="soon"/>
-                <Option front="Hard" top="1 hour"/>
-                <Option front="Good" top="1 day"/>
-                <Option front="Easy" top="1 year"/>
-            </Card>
+            { this.state.reviewing ? <ReviewManager /> : <SubmitManager /> }
         </div>
       </div>
     );
