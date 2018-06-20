@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS cards (
+    uuid text PRIMARY KEY,
+    stage int,
     due text,
-    is_new boolean,
+    training_mode boolean,
     graduating_interval int,
     ease int,
     last text,

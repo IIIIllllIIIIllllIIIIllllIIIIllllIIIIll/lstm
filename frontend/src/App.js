@@ -48,6 +48,9 @@ class Card extends Component {
 }
 
 class Option extends Component {
+    handleClick() {
+        this.props.onClick(this.props.ease);
+    }
     render() {
         return <div style={{
             display: "inline-flex",
@@ -58,7 +61,7 @@ class Option extends Component {
         }}>
         {this.props.top}
         </div>
-        <button style={{
+        <button onClick={this.props.onClick} style={{
             width: '6em',
             marginLeft: '0.15em',
             marginRight: '0.15em',
@@ -108,22 +111,63 @@ class MakeNew extends Component {
     }
 }
 
-class SubmitManager extends Component {
+class NewCardManager extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            number: 0,
+        }
+    }
     handleSubmit(s) {
-        console.log(s);
+        fetch('http://localhost:5000/cards', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(s),
+        }).then(response => {
+            this.setState({
+                number: this.state.number + 1,
+            });
+        });
     }
     render() {
-        return <MakeNew onSubmit={this.handleSubmit.bind(this)} />
+        return <MakeNew key={this.state.number} onSubmit={this.handleSubmit.bind(this)} />
     }
 }
 
 class ReviewManager extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            uuid: '',
+            front: '',
+            back: '',
+      };
+    }
+    handleClick(ease) {
+        console.log('ease=', ease);
+    }
+    componentDidMount() {
+        console.log('mounted');
+        fetch('http://localhost:5000/review').then(response => {
+            response.json().then(response => {
+                console.log(response);
+                this.setState({
+                    uuid: response.uuid,
+                    front: response.front,
+                    back: response.back,
+                })
+            })
+        });
+    }
     render() {
-        return <Card front="f" back="b">
-            <Option front="Again" top="soon"/>
-            <Option front="Hard" top="1 hour"/>
-            <Option front="Good" top="1 day"/>
-            <Option front="Easy" top="1 year"/>
+        return <Card front={this.state.front} back={this.state.back}>
+            <Option onClick={this.handleClick.bind(this, 0)} front="Again" top="soon"/>
+            <Option onClick={this.handleClick.bind(this, 1)} front="Hard" top="? hour"/>
+            <Option onClick={this.handleClick.bind(this, 2)} front="Good" top="? day"/>
+            <Option onClick={this.handleClick.bind(this, 3)} front="Easy" top="? year"/>
         </Card>
     }
 }
@@ -148,7 +192,10 @@ class App extends Component {
         <header className="App-header">
           <h1 className="App-title">LSTM</h1>
         </header>
-        <button onClick={this.handleToggleMode.bind(this)}>flip</button>
+        <button style={{
+            marginTop: '3em',
+        }} onClick={this.handleToggleMode.bind(this)}>{
+            this.state.reviewing ? "add cards" : "review"}</button>
         <div style={{
             display: 'flex',
             width: '100%',
@@ -157,7 +204,7 @@ class App extends Component {
             justifyContent: 'center',
             flexDirection: 'column',
         }}>
-            { this.state.reviewing ? <ReviewManager /> : <SubmitManager /> }
+            { this.state.reviewing ? <ReviewManager /> : <NewCardManager /> }
         </div>
       </div>
     );

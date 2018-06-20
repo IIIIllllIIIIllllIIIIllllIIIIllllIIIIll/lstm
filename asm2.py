@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Anki-flavoured supermemo2 scheduling algorithm
+# does not support early review
+
 from dataclasses import dataclass
 
 @dataclass
@@ -9,14 +12,17 @@ class TrainingCardKnowledge(object):
 
 @dataclass
 class CardKnowledge(object):
-    ease: int
-    last: int
-    due: int
+    ease: int       # increases or decreases when not ranked GOOD
+    last: int       # date of last review (negative for overdue)
+    due: int        # date of next review
 
 AGAIN = 0
 HARD = 1
 GOOD = 2
 EASY = 3
+
+class InvalidChoice(Exception):
+    pass
 
 def schedule_next(ease, interval_to_next):
     return CardKnowledge(
@@ -32,14 +38,15 @@ def graduate(ck):
         ease = ck.ease
     return schedule_next(ease, ck.graduating_interval)
 
-def updateOnReview(ck, score):
-
+def updateTCKOnReview(ck, score):
     # red to red
     if isinstance(ck, TrainingCardKnowledge) and score == AGAIN:
         return TrainingCardKnowledge(
             stage = 0,
             graduating_interval = ck.graduating_interval
         )
+    if isinstance(ck, TrainingCardKnowledge) and score == HARD:
+        raise InvalidChoice()
     if isinstance(ck, TrainingCardKnowledge) and score == GOOD:
         if ck.stage == 0:
                 return TrainingCardKnowledge(
@@ -49,9 +56,12 @@ def updateOnReview(ck, score):
         else:
             return graduate(ck)
     if isinstance(ck, TrainingCardKnowledge) and score == EASY:
-        return graduate(now, ck)
+        return graduate(ck)
 
+def updateCKOnReview(ck, score):
     interval = -ck.last
+
+    assert(interval >= 0)
 
     # orange to red
     if isinstance(ck, CardKnowledge) and score == AGAIN :
@@ -59,7 +69,6 @@ def updateOnReview(ck, score):
             stage = 1,
             graduating_interval = 1
         )
-
     # orange to orange
     if isinstance(ck, CardKnowledge) and score == HARD:
         return schedule_next(ck.ease - 20, interval * 1.2)
@@ -67,6 +76,13 @@ def updateOnReview(ck, score):
         return schedule_next(ck.ease, interval * ck.ease/100)
     if isinstance(ck, CardKnowledge) and score == EASY:
         return schedule_next(ck.ease, interval * ck.ease/100 * 1.3)
+
+def updateOnReview(ck, score):
+    if isinstance(ck, TrainingCardKnowledge):
+        return updateTCKOnReview(ck, score)
+    if isinstance(ck, CardKnowledge):
+        return updateCKOnReview(ck, score)
+    raise TypeError()
 
 # entry point
 
