@@ -37,7 +37,7 @@ def compress(row):
 
     uuid, stage, due, card_type, ease, last, front, back = row
 
-    return (uuid.split('-')[0], stage, delta_from_time(due), ['TRAINING', 'LAPSED', 'REG'][card_type], ease, delta_from_time(last), trunc(front), trunc(back))
+    return (uuid.split('-')[0], stage, delta_from_time(due), ['TRAINING', 'LAPSED', 'REGULAR'][card_type], ease, delta_from_time(last), trunc(front), trunc(back))
 
 rows = [compress(row) for row in rows]
 
