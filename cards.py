@@ -106,10 +106,11 @@ def do_rep(card_id, ease):
     elif isinstance(post_card, asm2.CardKnowledge):
         assert post_card.last == 0
 
-        execute("UPDATE cards SET stage=NULL, type=?, ease=?, due=? WHERE uuid=?", (
+        execute("UPDATE cards SET stage=NULL, type=?, ease=?, due=?, last=? WHERE uuid=?", (
             2,
             post_card.ease,
             int(time.time()) + post_card.due * SECONDS_IN_A_DAY,
+            int(time.time()),
             card[0],
         ))
         print('executed', card[0])

@@ -21,14 +21,23 @@ c = conn.cursor()
 rows = list(c.execute('SELECT * FROM cards'))
 
 def compress(row):
+
     def trunc(s):
         if not isinstance(s, str): return s
         if len(s) >= 15:
             return s[0:15] + ".."
         return s
+
+    def delta_from_time(t):
+        if t is None: return t
+        if isinstance(t, str):
+            t = int(t)
+        dtime_secs = t - time.time()
+        return round(Decimal(dtime_secs / 86400), 2)
+
     uuid, stage, due, card_type, ease, last, front, back = row
-    dtime_secs = int(due) - time.time()
-    return (uuid.split('-')[0], stage, round(Decimal(dtime_secs / 86400), 2), ['TRAINING', 'LAPSED', 'REG'][card_type], ease, last, trunc(front), trunc(back))
+
+    return (uuid.split('-')[0], stage, delta_from_time(due), ['TRAINING', 'LAPSED', 'REG'][card_type], ease, delta_from_time(last), trunc(front), trunc(back))
 
 rows = [compress(row) for row in rows]
 
