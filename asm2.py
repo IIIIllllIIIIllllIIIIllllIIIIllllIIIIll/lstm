@@ -12,7 +12,6 @@ class LapsedCardKnowledge(object):
 @dataclass
 class TrainingCardKnowledge(object):
     stage: int
-    graduating_interval: int
 
 @dataclass
 class CardKnowledge(object):
@@ -28,25 +27,17 @@ EASY = 3
 class InvalidChoice(Exception):
     pass
 
-def schedule_next(ease, interval_to_next):
+def schedule_next(ease, due_in):
     return CardKnowledge(
         ease = ease,
         last = 0,
-        due = interval_to_next,
+        due = due_in,
     )
-
-def graduate(ck):
-    if isinstance(ck, TrainingCardKnowledge):
-        ease = 250
-    else:
-        ease = ck.ease
-    return schedule_next(ease, ck.graduating_interval)
 
 def updateTCKOnReview(ck, score):
     if score == AGAIN:
         return TrainingCardKnowledge(
             stage = 0,
-            graduating_interval = ck.graduating_interval
         )
     if score == HARD:
         raise InvalidChoice()
@@ -54,12 +45,17 @@ def updateTCKOnReview(ck, score):
         if ck.stage == 0:
             return TrainingCardKnowledge(
                 stage = 1,
-                graduating_interval = ck.graduating_interval
             )
         else:
-            return graduate(ck)
+            return schedule_next(
+                ease = 250,
+                due_in = 1
+            )
     if score == EASY:
-        return graduate(ck)
+        return schedule_next(
+            ease = 250,
+            due_in = 4
+        )
 
 def updateCKOnReview(ck, score):
     interval = -ck.last
@@ -90,7 +86,10 @@ def updateLKOnReview(ck, score):
         if ck.stage == 0:
             return schedule_next(ck.ease, 1)
         else:
-            return graduate(ck)
+            return schedule_next(
+                ck.ease,
+                due_in = 1
+            )
     if score == EASY:
         raise InvalidChoice()
 
@@ -108,5 +107,4 @@ def updateOnReview(ck, score):
 def newCard():
     return TrainingCardKnowledge(
         stage = 0,
-        graduating_interval = 4
     )

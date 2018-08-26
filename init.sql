@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS cards (
     due text,
     -- 0: training, 1: lapsed, 2: regular
     type int,
-    graduating_interval int,
     ease int,
     last text,
     front text NOT NULL,

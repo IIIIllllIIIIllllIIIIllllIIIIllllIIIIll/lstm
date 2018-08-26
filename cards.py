@@ -18,14 +18,10 @@ conn.close()
 def add_card(front, back):
     conn = sqlite3.connect('cards.db')
     c = conn.cursor()
-    c.execute("INSERT INTO cards VALUES(?,?,?,?,?,?,?,?,?)", (
-        str(uuid.uuid4()), 0, None, 0, 4, None, None, front, back))
+    c.execute("INSERT INTO cards VALUES(?,?,?,?,?,?,?,?)", (
+        str(uuid.uuid4()), 0, None, 0, None, None, front, back))
     conn.commit()
     conn.close()
-
-def populate():
-    add_card("J'ai mis des fleurs dans le vase.", "I placed flowers in the vase")
-    add_card("Mon professeur met la barre haut.", "My teacher sets high standards.")
 
 def select(*args):
     conn = sqlite3.connect('cards.db')
@@ -58,8 +54,8 @@ def get_review():
         return {
             'uuid': new[0],
             'type': new[3],
-            'front': new[7],
-            'back': new[8],
+            'front': new[6],
+            'back': new[7],
             'hypothetical_next_dues': [
                 '<1m', None, '<10m', '4d'
             ]
@@ -70,8 +66,8 @@ def get_review():
         return {
             'uuid': new[0],
             'type': new[3],
-            'front': new[7],
-            'back': new[8],
+            'front': new[6],
+            'back': new[7],
             'hypothetical_next_dues': [
                 '<1m', None, '1d', '4d'
             ]
@@ -93,7 +89,6 @@ def post_card_of(card, ease):
 def post_card_of_review(card, ease):
     tck_pre = asm2.TrainingCardKnowledge(
         stage = card[1],
-        graduating_interval = card[4],
     )
     return asm2.updateOnReview(
         ck = tck_pre,
@@ -104,15 +99,14 @@ def do_rep(card_id, ease):
     card = get_card_by_id(card_id)
     post_card = post_card_of(card, ease)
     if isinstance(post_card, asm2.TrainingCardKnowledge):
-        execute("UPDATE cards SET stage=?, graduating_interval=? WHERE uuid=?", (
+        execute("UPDATE cards SET stage=? WHERE uuid=?", (
             post_card.stage,
-            post_card.graduating_interval,
             card[0],
         ))
     elif isinstance(post_card, asm2.CardKnowledge):
         assert post_card.last == 0
 
-        execute("UPDATE cards SET type=?, ease=?, due=? WHERE uuid=?", (
+        execute("UPDATE cards SET stage=NULL, type=?, ease=?, due=? WHERE uuid=?", (
             2,
             post_card.ease,
             int(time.time()) + post_card.due * SECONDS_IN_A_DAY,
