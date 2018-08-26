@@ -14,14 +14,12 @@ class Card extends Component {
         });
     }
     render() {
-        console.log(this.props);
         return <div style={{
             border: '1px solid black',
             padding: '20px',
             margin: '20px',
             width: '500px',
         }}>
-            <pre>{/*JSON.stringify(this.props)*/}</pre>
             <div><h1>{this.props.front}</h1></div>
 
             {/*not flipped*/}
@@ -189,7 +187,8 @@ class ReviewManager extends Component {
         if (this.state.uuid === '') {
             return <div>Nothing to review</div>
         }
-        return <Card
+        return <div>
+        <Card
             front={this.state.front}
             back={this.state.back}
             type={this.state.type}
@@ -199,6 +198,8 @@ class ReviewManager extends Component {
             <Option onClick={this.handleClick.bind(this, 2)} front="Good" top={this.state.hypothetical_next_dues[2]}/>
             <Option onClick={this.handleClick.bind(this, 3)} front="Easy" top={this.state.hypothetical_next_dues[3]}/>
         </Card>
+        <pre style={{maxWidth: '80em', textAlign: 'left' }}>{JSON.stringify(this.state, null, 2)}</pre>
+        </div>
     }
 }
 
