@@ -5,8 +5,8 @@ HEADERS = [
     "uuid",
     "stage",
     "due",
-    "training_mode",
-    "graduating_interval",
+    "type",
+    "grad",
     "ease",
     "last",
     "front",
@@ -16,7 +16,14 @@ HEADERS = [
 conn = sqlite3.connect('cards.db')
 c = conn.cursor()
 
+rows = list(c.execute('SELECT * FROM cards'))
+
+def compress_uuid(row):
+    return tuple((row[0].split('-')[0],)) + tuple(col for col in row[1:])
+
+rows = [compress_uuid(row) for row in rows]
+
 print(tabulate(
-    list(c.execute('SELECT * FROM cards')),
+    rows,
     headers=HEADERS
 ))

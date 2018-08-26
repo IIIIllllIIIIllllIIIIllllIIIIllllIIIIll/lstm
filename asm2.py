@@ -6,6 +6,10 @@
 from dataclasses import dataclass
 
 @dataclass
+class LapsedCardKnowledge(object):
+    ease: int       # inherited from ease of parent card
+
+@dataclass
 class TrainingCardKnowledge(object):
     stage: int
     graduating_interval: int
@@ -39,23 +43,22 @@ def graduate(ck):
     return schedule_next(ease, ck.graduating_interval)
 
 def updateTCKOnReview(ck, score):
-    # red to red
-    if isinstance(ck, TrainingCardKnowledge) and score == AGAIN:
+    if score == AGAIN:
         return TrainingCardKnowledge(
             stage = 0,
             graduating_interval = ck.graduating_interval
         )
-    if isinstance(ck, TrainingCardKnowledge) and score == HARD:
+    if score == HARD:
         raise InvalidChoice()
-    if isinstance(ck, TrainingCardKnowledge) and score == GOOD:
+    if score == GOOD:
         if ck.stage == 0:
-                return TrainingCardKnowledge(
+            return TrainingCardKnowledge(
                 stage = 1,
                 graduating_interval = ck.graduating_interval
             )
         else:
             return graduate(ck)
-    if isinstance(ck, TrainingCardKnowledge) and score == EASY:
+    if score == EASY:
         return graduate(ck)
 
 def updateCKOnReview(ck, score):
@@ -65,9 +68,8 @@ def updateCKOnReview(ck, score):
 
     # orange to red
     if isinstance(ck, CardKnowledge) and score == AGAIN :
-        return TrainingCardKnowledge(
-            stage = 1,
-            graduating_interval = 1
+        return LapsedCardKnowledge(
+            ease = ck.ease
         )
     # orange to orange
     if isinstance(ck, CardKnowledge) and score == HARD:
@@ -77,11 +79,28 @@ def updateCKOnReview(ck, score):
     if isinstance(ck, CardKnowledge) and score == EASY:
         return schedule_next(ck.ease, interval * ck.ease/100 * 1.3)
 
+def updateLKOnReview(ck, score):
+    # todo: I think lapsed cards can only be marked "AGAIN" or
+    # "GOOD"; confirm this
+    if score == AGAIN:
+        return ck
+    if score == HARD:
+        raise InvalidChoice()
+    if score == GOOD:
+        if ck.stage == 0:
+            return schedule_next(ck.ease, 1)
+        else:
+            return graduate(ck)
+    if score == EASY:
+        raise InvalidChoice()
+
 def updateOnReview(ck, score):
     if isinstance(ck, TrainingCardKnowledge):
         return updateTCKOnReview(ck, score)
     if isinstance(ck, CardKnowledge):
         return updateCKOnReview(ck, score)
+    if isinstance(ck, LapsedCardKnowledge):
+        return updateLKOnReview(ck, score)
     raise TypeError()
 
 # entry point

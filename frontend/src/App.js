@@ -14,12 +14,14 @@ class Card extends Component {
         });
     }
     render() {
+        console.log(this.props);
         return <div style={{
             border: '1px solid black',
             padding: '20px',
             margin: '20px',
             width: '500px',
         }}>
+            <pre>{/*JSON.stringify(this.props)*/}</pre>
             <div><h1>{this.props.front}</h1></div>
 
             {/*not flipped*/}
@@ -144,30 +146,58 @@ class ReviewManager extends Component {
             uuid: '',
             front: '',
             back: '',
+            type: null,
+            hypothetical_next_dues: [],
       };
     }
     handleClick(ease) {
         console.log('ease=', ease);
+        fetch('http://localhost:5000/do_rep', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'uuid': this.state.uuid,
+                'ease': ease,
+            }),
+        }).then(response => {
+            console.log('response=', response);
+            // todo: don't do this
+            window.location.reload();
+        });
     }
     componentDidMount() {
-        console.log('mounted');
         fetch('http://localhost:5000/review').then(response => {
             response.json().then(response => {
-                console.log(response);
+                if (!response) return;
                 this.setState({
                     uuid: response.uuid,
                     front: response.front,
                     back: response.back,
+                    type: response.type,
+                    hypothetical_next_dues: response.hypothetical_next_dues,
                 })
             })
         });
     }
+    shouldDisplay1() {
+        return this.state.type === 2;
+    }
     render() {
-        return <Card front={this.state.front} back={this.state.back}>
-            <Option onClick={this.handleClick.bind(this, 0)} front="Again" top="soon"/>
-            <Option onClick={this.handleClick.bind(this, 1)} front="Hard" top="? hour"/>
-            <Option onClick={this.handleClick.bind(this, 2)} front="Good" top="? day"/>
-            <Option onClick={this.handleClick.bind(this, 3)} front="Easy" top="? year"/>
+        if (this.state.uuid === '') {
+            return <div>Nothing to review</div>
+        }
+        return <Card
+            front={this.state.front}
+            back={this.state.back}
+            type={this.state.type}
+        >
+            <Option onClick={this.handleClick.bind(this, 0)} front="Again" top={this.state.hypothetical_next_dues[0]}/>
+            {this.shouldDisplay1() ? <Option onClick={this.handleClick.bind(this, 1)} front="Hard" top={this.state.hypothetical_next_dues[1]}/> : null}
+            <Option onClick={this.handleClick.bind(this, 2)} front="Good" top={this.state.hypothetical_next_dues[2]}/>
+            <Option onClick={this.handleClick.bind(this, 3)} front="Easy" top={this.state.hypothetical_next_dues[3]}/>
         </Card>
     }
 }
