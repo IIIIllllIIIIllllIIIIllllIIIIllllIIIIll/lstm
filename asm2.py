@@ -3,6 +3,7 @@
 # Anki-flavoured supermemo2 scheduling algorithm
 # does not support early review
 
+import math
 from dataclasses import dataclass
 
 @dataclass
@@ -30,7 +31,7 @@ class InvalidChoice(Exception):
 def schedule_next(ease, due_in):
     return CardKnowledge(
         ease = ease,
-        last = 0,
+        last = None,
         due = due_in,
     )
 
@@ -65,15 +66,15 @@ def updateCKOnReview(ck, score):
     # orange to red
     if isinstance(ck, CardKnowledge) and score == AGAIN :
         return LapsedCardKnowledge(
-            ease = ck.ease
+            ease = max(130, ck.ease - 20)
         )
     # orange to orange
     if isinstance(ck, CardKnowledge) and score == HARD:
-        return schedule_next(ck.ease - 20, interval * 1.2)
+        return schedule_next(max(130, ck.ease - 15), interval * 1.2)
     if isinstance(ck, CardKnowledge) and score == GOOD:
         return schedule_next(ck.ease, interval * ck.ease/100)
     if isinstance(ck, CardKnowledge) and score == EASY:
-        return schedule_next(ck.ease, interval * ck.ease/100 * 1.3)
+        return schedule_next(ck.ease + 15, interval * ck.ease/100 * 1.3)
 
 def updateLKOnReview(ck, score):
     # todo: I think lapsed cards can only be marked "AGAIN" or
